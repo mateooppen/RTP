@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Rutina Pepa — Tracker</title>
+<style>
+:root {
+  --bg: #f5f3ef;
+  --bg-card: #ffffff;
+  --bg-card-alt: #faf9f7;
+  --text: #1a1a1a;
+  --text-muted: #6b6560;
+  --text-light: #9a948e;
+  --border: #e8e4de;
+  --border-light: #f0ece6;
+  --accent: #c45d3e;
+  --accent-light: #f8ece8;
+  --accent-dark: #a14a30;
+  --green: #3a8a5c;
+  --green-light: #e8f5ee;
+  --green-dark: #2d6e48;
+  --blue: #3d6b9e;
+  --blue-light: #e8f0fa;
+  --purple: #7a5aa6;
+  --purple-light: #f0ebf6;
+  --yellow: #c49a2e;
+  --yellow-light: #fdf6e3;
+  --warmup-bg: #fef9f0;
+  --warmup-border: #f0dfc0;
+  --main-bg: #f0f5fa;
+  --main-border: #c8d8ea;
+  --cooldown-bg: #f0faf4;
+  --cooldown-border: #c0e0cc;
+  --note-bg: #fff8e8;
+  --note-border: #f0dfa0;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --transition: 0.2s ease;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #131210;
+    --bg-card: #1e1d1a;
+    --bg-card-alt: #252420;
+    --text: #e8e4de;
+    --text-muted: #9a948e;
+    --text-light: #6b6560;
+    --border: #333028;
+    --border-light: #2a2820;
+    --accent: #e07050;
+    --accent-light: #2e1e18;
+    --accent-dark: #f08060;
+    --green: #5cb87a;
+    --green-light: #1a2e20;
+    --green-dark: #70d090;
+    --blue: #6a9ed4;
+    --blue-light: #1a2530;
+    --purple: #a080d0;
+    --purple-light: #201828;
+    --yellow: #d4b040;
+    --yellow-light: #28220e;
+    --warmup-bg: #221e14;
+    --warmup-border: #3a3420;
+    --main-bg: #18202a;
+    --main-border: #2a3848;
+    --cooldown-bg: #142218;
+    --cooldown-border: #203828;
+    --note-bg: #262010;
+    --note-border: #3a3418;
+    --shadow: 0 1px 3px rgba(0,0,0,0.3);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+  }
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 0 16px 80px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* === HEADER === */
+.header {
+  padding: 24px 0 16px;
+  text-align: center;
+}
+.header h1 {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+.header .sub {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* === WEEK TRACKER === */
+.tracker-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow);
+}
+
+.week-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.week-nav button {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: var(--transition);
+  font-size: 14px;
+}
+.week-nav button:hover { background: var(--bg-card-alt); color: var(--text); }
+.week-nav button:disabled { opacity: 0.3; cursor: default; }
+.week-label {
+  font-size: 18px;
+  font-weight: 700;
+  min-width: 120px;
+  text-align: center;
+}
+.week-phase {
+  text-align: center;
+  font-size: 12px;
+  color: var(--accent);
+  font-weight: 600;
+  margin-bottom: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.progress-bar-wrap {
+  background: var(--border-light);
+  border-radius: 20px;
+  height: 8px;
+  margin-bottom: 6px;
+  overflow: hidden;
+}
+.progress-bar-fill {
+  height: 100%;
+  background: var(--green);
+  border-radius: 20px;
+  transition: width 0.4s ease;
+}
+.progress-text {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: right;
+  margin-bottom: 16px;
+}
+
+.days-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.day-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-light);
+  background: var(--bg-card-alt);
+  transition: var(--transition);
+  cursor: pointer;
+}
+.day-row:active { transform: scale(0.98); }
+.day-row.done {
+  border-color: var(--green);
+  background: var(--green-light);
+}
+.day-check {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: var(--transition);
+  font-size: 13px;
+  color: transparent;
+}
+.day-row.done .day-check {
+  border-color: var(--green);
+  background: var(--green);
+  color: #fff;
+}
+.day-info { flex: 1; min-width: 0; }
+.day-name {
+  font-size: 14px;
+  font-weight: 600;
+}
+.day-focus {
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.day-dur {
+  font-size: 11px;
+  color: var(--text-light);
+  flex-shrink: 0;
+}
+
+/* === HISTORY === */
+.history-section {
+  margin-bottom: 16px;
+}
+.history-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.history-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.chip {
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: var(--green-light);
+  color: var(--green);
+  font-weight: 600;
+  border: 1px solid var(--cooldown-border);
+}
+.chip.partial {
+  background: var(--yellow-light);
+  color: var(--yellow);
+  border-color: var(--note-border);
+}
+
+/* === RESET === */
+.reset-wrap {
+  text-align: center;
+  margin-bottom: 24px;
+}
+.reset-btn {
+  font-size: 12px;
+  color: var(--text-light);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 6px 12px;
+}
+.reset-btn:hover { color: var(--accent); }
+
+/* === ACCORDION SECTIONS === */
+.section-toggle {
+  width: 100%;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  margin-bottom: 8px;
+  box-shadow: var(--shadow);
+  transition: var(--transition);
+}
+.section-toggle:hover { border-color: var(--accent); }
+.section-toggle .st-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+.section-toggle .arrow {
+  font-size: 12px;
+  color: var(--text-muted);
+  transition: transform 0.2s;
+}
+.section-toggle.open .arrow { transform: rotate(180deg); }
+.section-content {
+  display: none;
+  margin-bottom: 16px;
+}
+.section-content.open { display: block; }
+
+/* === DAY CARD === */
+.day-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 8px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.day-card-header {
+  padding: 14px 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.day-card-header:hover { background: var(--bg-card-alt); }
+.dch-left { flex: 1; min-width: 0; }
+.dch-title {
+  font-size: 14px;
+  font-weight: 700;
+}
+.dch-sub {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.dch-arrow {
+  font-size: 12px;
+  color: var(--text-muted);
+  transition: transform 0.2s;
+}
+.day-card.open .dch-arrow { transform: rotate(180deg); }
+.day-card-body {
+  display: none;
+  padding: 0 16px 16px;
+}
+.day-card.open .day-card-body { display: block; }
+
+/* === BLOCKS === */
+.block {
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  margin-bottom: 10px;
+  border: 1px solid;
+}
+.block-warmup { background: var(--warmup-bg); border-color: var(--warmup-border); }
+.block-main { background: var(--main-bg); border-color: var(--main-border); }
+.block-cool { background: var(--cooldown-bg); border-color: var(--cooldown-border); }
+.block-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: 8px;
+}
+.block-warmup .block-label { color: var(--yellow); }
+.block-main .block-label { color: var(--blue); }
+.block-cool .block-label { color: var(--green); }
+
+.block-meta {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+  font-style: italic;
+}
+
+/* exercise list */
+.ex-list { list-style: none; }
+.ex-list li {
+  font-size: 13px;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--border-light);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  align-items: baseline;
+}
+.ex-list li:last-child { border-bottom: none; }
+.ex-name { font-weight: 600; flex: 1 1 100%; }
+.ex-detail { font-size: 12px; color: var(--text-muted); }
+
+/* table for main block */
+.ex-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  margin-top: 4px;
+}
+.ex-table th {
+  text-align: left;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--text-muted);
+  padding: 4px 6px;
+  border-bottom: 1px solid var(--main-border);
+}
+.ex-table td {
+  padding: 6px;
+  border-bottom: 1px solid var(--border-light);
+  vertical-align: top;
+}
+.ex-table tr:last-child td { border-bottom: none; }
+.ex-table .td-name { font-weight: 600; min-width: 100px; }
+
+.tag {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.3px;
+}
+.tag-rir { background: var(--purple-light); color: var(--purple); }
+.tag-rest { background: var(--blue-light); color: var(--blue); }
+
+.note-box {
+  background: var(--note-bg);
+  border: 1px solid var(--note-border);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  margin-top: 8px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text);
+}
+.note-box .note-icon { margin-right: 4px; }
+
+/* === GLOSSARY === */
+.glossary-item {
+  margin-bottom: 12px;
+}
+.glossary-item h4 {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+.glossary-item p {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.glossary-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  margin: 8px 0;
+}
+.glossary-table th, .glossary-table td {
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  text-align: center;
+}
+.glossary-table th {
+  background: var(--bg-card-alt);
+  font-weight: 700;
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.phase-card {
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  margin-bottom: 6px;
+  border-left: 3px solid;
+}
+.phase-card h4 { font-size: 13px; font-weight: 700; margin-bottom: 2px; }
+.phase-card p { font-size: 12px; color: var(--text-muted); }
+.phase-1 { border-color: var(--green); background: var(--green-light); }
+.phase-2 { border-color: var(--blue); background: var(--blue-light); }
+.phase-3 { border-color: var(--purple); background: var(--purple-light); }
+
+/* confirm overlay */
+.overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.overlay.show { display: flex; }
+.overlay-box {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  padding: 24px;
+  max-width: 320px;
+  width: 100%;
+  text-align: center;
+  box-shadow: var(--shadow-md);
+}
+.overlay-box h3 { font-size: 16px; margin-bottom: 8px; }
+.overlay-box p { font-size: 13px; color: var(--text-muted); margin-bottom: 16px; }
+.overlay-btns { display: flex; gap: 8px; justify-content: center; }
+.overlay-btns button {
+  padding: 8px 20px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--bg-card-alt);
+  color: var(--text);
+  transition: var(--transition);
+}
+.overlay-btns .btn-danger {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🥊 Rutina Pepa</h1>
+  <div class="sub">5 Gimnasio + 3 Kick Boxing · Tracker Semanal</div>
+</div>
+
+<div class="tracker-card" id="trackerCard"></div>
+
+<div class="history-section" id="historySection"></div>
+
+<div class="reset-wrap">
+  <button class="reset-btn" onclick="showReset()">Reiniciar todo el progreso</button>
+</div>
+
+<div id="routineSection"></div>
+<div id="glossarySection"></div>
+
+<div class="overlay" id="overlay">
+  <div class="overlay-box">
+    <h3>¿Reiniciar progreso?</h3>
+    <p>Se borrará el historial de todas las semanas. Esta acción no se puede deshacer.</p>
+    <div class="overlay-btns">
+      <button onclick="hideReset()">Cancelar</button>
+      <button class="btn-danger" onclick="doReset()">Reiniciar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'rutina_pepa_v1';
+const DAYS_DATA = [
+  { id: 0, short: 'LUN', name: 'Lunes', title: 'Movilidad + Core', dur: '30 min' },
+  { id: 1, short: 'MAR', name: 'Martes', title: 'Tren Inferior', dur: '50-60 min' },
+  { id: 2, short: 'MIÉ', name: 'Miércoles', title: 'Activación y Estabilidad', dur: '30 min' },
+  { id: 3, short: 'JUE', name: 'Jueves', title: 'Tren Superior', dur: '50-60 min' },
+  { id: 4, short: 'VIE', name: 'Viernes', title: 'Prevención y Escápulas', dur: '30 min' },
+];
+
+function getPhase(week) {
+  if (week <= 2) return 'Adaptación Anatómica · RIR 3';
+  if (week <= 4) return 'Sobrecarga Progresiva · RIR 2';
+  return 'Consolidación de Fuerza · RIR 2';
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch(e) {}
+  return { currentWeek: 1, viewWeek: 1, weeks: {} };
+}
+function saveState(s) { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); }
+
+function getWeekDays(s, w) {
+  return s.weeks[w] || [false, false, false, false, false];
+}
+
+function countDone(days) { return days.filter(Boolean).length; }
+
+function renderTracker() {
+  const s = loadState();
+  const vw = s.viewWeek || s.currentWeek;
+  const days = getWeekDays(s, vw);
+  const done = countDone(days);
+  const isCurrent = vw === s.currentWeek;
+  const pct = (done / 5) * 100;
+
+  let html = `
+    <div class="week-nav">
+      <button onclick="navWeek(-1)" ${vw <= 1 ? 'disabled' : ''}>◀</button>
+      <div class="week-label">Semana ${vw}</div>
+      <button onclick="navWeek(1)" ${vw >= s.currentWeek ? 'disabled' : ''}>▶</button>
+    </div>
+    <div class="week-phase">${getPhase(vw)}</div>
+    <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:${pct}%"></div></div>
+    <div class="progress-text">${done} de 5 días</div>
+    <div class="days-grid">`;
+
+  DAYS_DATA.forEach((d, i) => {
+    const checked = days[i];
+    const canToggle = isCurrent;
+    html += `
+      <div class="day-row ${checked ? 'done' : ''}" ${canToggle ? `onclick="toggleDay(${i})"` : ''}>
+        <div class="day-check">${checked ? '✓' : ''}</div>
+        <div class="day-info">
+          <div class="day-name">${d.short} — ${d.title}</div>
+          <div class="day-focus">${d.name}</div>
+        </div>
+        <div class="day-dur">${d.dur}</div>
+      </div>`;
+  });
+  html += '</div>';
+  document.getElementById('trackerCard').innerHTML = html;
+  renderHistory();
+}
+
+function toggleDay(idx) {
+  const s = loadState();
+  const w = s.currentWeek;
+  if (!s.weeks[w]) s.weeks[w] = [false, false, false, false, false];
+  s.weeks[w][idx] = !s.weeks[w][idx];
+
+  if (countDone(s.weeks[w]) === 5) {
+    s.currentWeek++;
+    s.viewWeek = s.currentWeek;
+  } else {
+    s.viewWeek = w;
+  }
+  saveState(s);
+  renderTracker();
+}
+
+function navWeek(dir) {
+  const s = loadState();
+  const nw = (s.viewWeek || s.currentWeek) + dir;
+  if (nw < 1 || nw > s.currentWeek) return;
+  s.viewWeek = nw;
+  saveState(s);
+  renderTracker();
+}
+
+function renderHistory() {
+  const s = loadState();
+  const completed = [];
+  for (let w = 1; w < s.currentWeek; w++) {
+    const d = getWeekDays(s, w);
+    completed.push({ week: w, done: countDone(d) });
+  }
+  const el = document.getElementById('historySection');
+  if (completed.length === 0) { el.innerHTML = ''; return; }
+  let html = `<div class="history-title">Semanas completadas</div><div class="history-chips">`;
+  completed.forEach(c => {
+    const cls = c.done === 5 ? 'chip' : 'chip partial';
+    html += `<span class="${cls}">S${c.week} · ${c.done}/5</span>`;
+  });
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+function showReset() { document.getElementById('overlay').classList.add('show'); }
+function hideReset() { document.getElementById('overlay').classList.remove('show'); }
+function doReset() {
+  localStorage.removeItem(STORAGE_KEY);
+  hideReset();
+  renderTracker();
+}
+
+// === ROUTINE DATA ===
+const routine = [
+  {
+    title: 'Lunes — Movilidad + Core',
+    focus: 'Despertar el sistema nervioso y flexibilizar el cuerpo antes del Kick Boxing.',
+    dur: '30 min',
+    warmup: {
+      meta: '5 min',
+      exercises: [
+        'Movilidad articular general: círculos de tobillo, rodillas y cadera (1 min)',
+        'World\'s Greatest Stretch: 5 reps por lado (zancada profunda con rotación de torso)'
+      ]
+    },
+    main: {
+      meta: '3 series · Descanso: 45 seg entre ejercicios',
+      isTable: false,
+      exercises: [
+        { name: 'Rotaciones torácicas en cuadrupedia', sets: '3 × 10/lado', note: 'Fluido, acompaña el movimiento con la mirada.' },
+        { name: 'Dead Bug (Bicho muerto)', sets: '3 × 10/lado', note: 'Zona lumbar pegada al suelo en todo momento.' },
+        { name: 'Plancha frontal con toque de hombros', sets: '3 × 8/lado', note: 'Evitar que la cadera oscile al despegar la mano.' },
+        { name: 'Pallof Press (banda o polea)', sets: '3 × 12/lado', note: 'Sostener 2 seg la extensión con core apretado.' },
+        { name: 'Cat-Cow + Extensión de cadera', sets: '2 × 10 totales', note: 'Estiramiento dinámico de columna + activación de glúteo.' },
+      ]
+    },
+    cool: {
+      meta: '5 min',
+      exercises: [
+        'Postura del niño (Child\'s Pose): 2 minutos con respiración diafragmática profunda'
+      ]
+    },
+    notes: []
+  },
+  {
+    title: 'Martes — Tren Inferior (Fuerza)',
+    focus: 'Fuerza base en piernas y estabilidad lumbopélvica.',
+    dur: '50-60 min',
+    warmup: {
+      meta: '8 min',
+      exercises: [
+        'Puentes de glúteo: 2 × 15 reps (sin peso)',
+        'Sentadillas libres corporales: 2 × 10 reps enfocándose en la profundidad'
+      ]
+    },
+    main: {
+      meta: 'Bloque de Fuerza',
+      isTable: true,
+      exercises: [
+        { name: 'Goblet Squat', sets: '3 × 8-10', rir: 'RIR 2-3', rest: '90s', note: '' },
+        { name: 'Hiperextensiones a 45°', sets: '3 × 10-12', rir: 'RIR 2', rest: '90s', note: '' },
+        { name: 'Estocadas fijas hacia atrás c/ mancuernas', sets: '3 × 8/lado', rir: 'RIR 2', rest: '60s', note: '' },
+        { name: 'Hip Thrust con mancuerna', sets: '3 × 12', rir: 'RIR 2', rest: '60s', note: '' },
+        { name: 'Elevación de pantorrillas de pie', sets: '3 × 15', rir: 'RIR 1', rest: '45s', note: '' },
+      ]
+    },
+    cool: {
+      meta: '7 min',
+      exercises: [
+        'Estiramiento de flexores de cadera (Psoas): 1 min por lado',
+        'Estiramiento de isquiotibiales en el suelo: 1 min por pierna',
+        'Opcional: Foam roller en cuádriceps y glúteos'
+      ]
+    },
+    notes: ['Hiperextensiones: redondear ligeramente la parte alta de la espalda y empujar el cojín con la pelvis/glúteos, no tirar con la fuerza de la espalda baja.']
+  },
+  {
+    title: 'Miércoles — Activación y Estabilidad Inferior',
+    focus: 'Recuperación activa y transferencia mecánica para los desplazamientos del Kick Boxing.',
+    dur: '30 min',
+    warmup: {
+      meta: '5 min',
+      exercises: [
+        'Movilidad de tobillos contra la pared: 15 reps por pie'
+      ]
+    },
+    main: {
+      meta: '3 series · Circuito suave, descanso mínimo',
+      isTable: false,
+      exercises: [
+        { name: 'Sentadilla sumo con peso corporal', sets: '3 × 12', note: 'Controlado, sintiendo la apertura de caderas.' },
+        { name: 'Abducción de cadera (máquina o banda)', sets: '3 × 15', note: 'Fortalece el glúteo medio (estabilizador en patadas).' },
+        { name: 'Puente de glúteos unilateral', sets: '3 × 8/lado', note: 'Sin peso. Pausa de 2 seg arriba apretando glúteo.' },
+        { name: 'Equilibrio monopodal', sets: '3 × 30s/lado', note: 'Core firme simulando la guardia.' },
+        { name: 'Movilidad de caderas 90/90', sets: '2 × 8/lado', note: 'Dinámico, buscando liberar tensión en la articulación.' },
+      ]
+    },
+    cool: {
+      meta: '5 min',
+      exercises: [
+        'Estiramiento del piramidal/glúteo (Postura de la paloma): 90 seg por lado'
+      ]
+    },
+    notes: []
+  },
+  {
+    title: 'Jueves — Tren Superior (Fuerza)',
+    focus: 'Fuerza de empuje y tracción, postura y salud del hombro.',
+    dur: '50-60 min',
+    warmup: {
+      meta: '8 min',
+      exercises: [
+        'Círculos de brazos + Dislocaciones con bastón o banda: 2 min',
+        'Flexiones inclinadas (en banco o barra alta): 2 × 8 reps fáciles'
+      ]
+    },
+    main: {
+      meta: 'Bloque de Fuerza',
+      isTable: true,
+      exercises: [
+        { name: 'Press de banca con mancuernas', sets: '3 × 8-10', rir: 'RIR 2-3', rest: '90s', note: '' },
+        { name: 'Remo con mancuerna a una mano', sets: '3 × 10/lado', rir: 'RIR 2', rest: '90s', note: '' },
+        { name: 'Press de hombros sentada', sets: '3 × 10', rir: 'RIR 2-3', rest: '60s', note: '' },
+        { name: 'Face Pull en polea alta', sets: '3 × 15', rir: 'RIR 1-2', rest: '60s', note: '' },
+        { name: 'Curl de bíceps alternado', sets: '2 × 12', rir: 'RIR 2', rest: '45s', note: '' },
+      ]
+    },
+    cool: {
+      meta: '7 min',
+      exercises: [
+        'Estiramiento de pectoral en marco de puerta: 1 min por lado',
+        'Estiramiento de dorsales (colgarse o manos en pared): 1 min'
+      ]
+    },
+    notes: ['Face Pull: clave para contrarrestar la postura encorvada de la guardia de combate. Llevar la cuerda hacia la frente separando las manos al final del movimiento.']
+  },
+  {
+    title: 'Viernes — Prevención y Escápulas',
+    focus: 'Cuidar los hombros del estrés repetitivo de los golpes (puñetazos).',
+    dur: '30 min',
+    warmup: {
+      meta: '5 min',
+      exercises: [
+        'Bird-Dog: 2 × 8 por lado para activar core y cadena cruzada'
+      ]
+    },
+    main: {
+      meta: '3 series · Muy liviano',
+      isTable: false,
+      exercises: [
+        { name: 'Rotaciones externas con banda', sets: '3 × 15/lado', note: 'Codo pegado a las costillas, movimiento controlado.' },
+        { name: 'Press de hombros con banda liviana', sets: '3 × 12', note: 'Enfoque total en el control de la bajada.' },
+        { name: 'Retracción escapular en polea baja o banda', sets: '3 × 12', note: 'Solo escápulas, sin flexionar codos.' },
+        { name: 'Movilidad de hombros (Cross-body stretch)', sets: '2 × 45s/lado', note: 'Estiramiento dinámico/asistido.' },
+        { name: 'Plancha lateral isométrica', sets: '3 × 20-30s/lado', note: 'Línea recta desde cabeza a pies.' },
+      ]
+    },
+    cool: {
+      meta: '5 min',
+      exercises: [
+        'Estiramiento de la cápsula posterior del hombro: 1 min por brazo',
+        'Respiraciones profundas acostada boca arriba'
+      ]
+    },
+    notes: []
+  }
+];
+
+function renderRoutine() {
+  let html = `
+    <div class="section-toggle" onclick="toggleSection('routineContent', this)">
+      <span class="st-title">📋 Rutina Completa</span>
+      <span class="arrow">▼</span>
+    </div>
+    <div class="section-content" id="routineContent">`;
+
+  routine.forEach((day, idx) => {
+    html += `
+      <div class="day-card" id="dayCard${idx}">
+        <div class="day-card-header" onclick="toggleDayCard(${idx})">
+          <div class="dch-left">
+            <div class="dch-title">${day.title}</div>
+            <div class="dch-sub">${day.focus} · ${day.dur}</div>
+          </div>
+          <span class="dch-arrow">▼</span>
+        </div>
+        <div class="day-card-body">`;
+
+    // warmup
+    html += `
+          <div class="block block-warmup">
+            <div class="block-label">🔥 Entrada en Calor</div>
+            <div class="block-meta">${day.warmup.meta}</div>
+            <ul class="ex-list">`;
+    day.warmup.exercises.forEach(e => { html += `<li><span class="ex-name">${e}</span></li>`; });
+    html += '</ul></div>';
+
+    // main
+    html += `
+          <div class="block block-main">
+            <div class="block-label">💪 Bloque Principal</div>
+            <div class="block-meta">${day.main.meta}</div>`;
+
+    if (day.main.isTable) {
+      html += `<table class="ex-table"><thead><tr>
+        <th>Ejercicio</th><th>Series × Reps</th><th>RIR</th><th>Desc.</th>
+      </tr></thead><tbody>`;
+      day.main.exercises.forEach(e => {
+        html += `<tr>
+          <td class="td-name">${e.name}</td>
+          <td>${e.sets}</td>
+          <td><span class="tag tag-rir">${e.rir}</span></td>
+          <td><span class="tag tag-rest">${e.rest}</span></td>
+        </tr>`;
+      });
+      html += '</tbody></table>';
+    } else {
+      html += '<ul class="ex-list">';
+      day.main.exercises.forEach(e => {
+        html += `<li>
+          <span class="ex-name">${e.name}</span>
+          <span class="ex-detail">${e.sets}</span>
+          <span class="ex-detail" style="color:var(--text-light)">${e.note}</span>
+        </li>`;
+      });
+      html += '</ul>';
+    }
+    html += '</div>';
+
+    // cool
+    html += `
+          <div class="block block-cool">
+            <div class="block-label">🧊 Vuelta a la Calma</div>
+            <div class="block-meta">${day.cool.meta}</div>
+            <ul class="ex-list">`;
+    day.cool.exercises.forEach(e => { html += `<li><span class="ex-name">${e}</span></li>`; });
+    html += '</ul></div>';
+
+    // notes
+    day.notes.forEach(n => {
+      html += `<div class="note-box"><span class="note-icon">💡</span> ${n}</div>`;
+    });
+
+    html += '</div></div>';
+  });
+
+  html += '</div>';
+  document.getElementById('routineSection').innerHTML = html;
+}
+
+function renderGlossary() {
+  document.getElementById('glossarySection').innerHTML = `
+    <div class="section-toggle" onclick="toggleSection('glossaryContent', this)">
+      <span class="st-title">📖 Glosario de Términos</span>
+      <span class="arrow">▼</span>
+    </div>
+    <div class="section-content" id="glossaryContent" style="padding:0 4px;">
+      <div class="glossary-item">
+        <h4>RIR — Repeticiones en Reserva</h4>
+        <p>Cuántas repeticiones más podrías haber hecho antes de que se caiga el peso. RIR 3 = te quedan 3 reps en el tanque.</p>
+      </div>
+      <div class="glossary-item">
+        <h4>RPE — Rate of Perceived Exertion</h4>
+        <p>Escala de 1 a 10 que mide el esfuerzo percibido. RPE 7 = esfuerzo moderado-alto, RPE 10 = fallo total.</p>
+      </div>
+      <div class="glossary-item">
+        <h4>Tabla RIR ↔ RPE</h4>
+        <table class="glossary-table">
+          <thead><tr><th>RIR</th><th>RPE</th><th>Significado</th></tr></thead>
+          <tbody>
+            <tr><td>4+</td><td>6</td><td>Carga liviana, entrada en calor</td></tr>
+            <tr><td>3</td><td>7</td><td>Esfuerzo moderado, técnica perfecta</td></tr>
+            <tr><td>2</td><td>8</td><td>Desafiante pero controlado</td></tr>
+            <tr><td>1</td><td>9</td><td>Muy cerca del límite</td></tr>
+            <tr><td>0</td><td>10</td><td>Fallo muscular (no usar en esta rutina)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="glossary-item">
+        <h4>Fallo Muscular</h4>
+        <p>Punto donde no podés completar una repetición más con buena técnica. En esta rutina <strong>nunca</strong> se llega al fallo para proteger la recuperación del Kick Boxing.</p>
+      </div>
+      <div class="glossary-item" style="margin-top:16px">
+        <h4>Progresión por Fases</h4>
+        <div class="phase-card phase-1">
+          <h4>Semanas 1-2 · Adaptación Anatómica</h4>
+          <p>RIR 3 (RPE 7). Foco en la velocidad del movimiento y técnica perfecta.</p>
+        </div>
+        <div class="phase-card phase-2">
+          <h4>Semanas 3-4 · Sobrecarga Progresiva</h4>
+          <p>RIR 2 (RPE 8). Subir peso solo si la técnica de las semanas previas fue impecable.</p>
+        </div>
+        <div class="phase-card phase-3">
+          <h4>Semanas 5-6 · Consolidación de Fuerza</h4>
+          <p>RIR 2. Mejorar velocidad de ejecución o sumar una rep extra con el mismo peso.</p>
+        </div>
+      </div>
+    </div>`;
+}
+
+function toggleSection(id, btn) {
+  const el = document.getElementById(id);
+  el.classList.toggle('open');
+  btn.classList.toggle('open');
+}
+
+function toggleDayCard(idx) {
+  document.getElementById('dayCard' + idx).classList.toggle('open');
+}
+
+// Init
+renderTracker();
+renderRoutine();
+renderGlossary();
+</script>
+</body>
+</html>
