@@ -460,7 +460,7 @@ body {
   background: var(--border-light);
   border: 1px dashed var(--border);
   border-radius: var(--radius-sm);
-  height: 150px;
+  aspect-ratio: 3 / 2;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -471,6 +471,7 @@ body {
   overflow: hidden;
   position: relative;
 }
+.ex-media-box.has-media { border-style: solid; border-color: var(--border); background: #ffffff; }
 .ex-media-box span.icon {
   font-size: 20px;
   margin-bottom: 4px;
@@ -478,8 +479,8 @@ body {
 .ex-media-box img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  display: none; /* Cambiar a block vía JS si se añade URL de imagen */
+  object-fit: contain;
+  display: block;
 }
 
 .tag {
@@ -868,6 +869,82 @@ const routine = [
   }
 ];
 
+// === MAPA CENTRAL DE IMÁGENES ===
+// Fuente única de verdad. Las claves coinciden EXACTAMENTE con el nombre del ejercicio en `routine`.
+// Un GIF animado por ejercicio (se anima solo). '' = sin imagen disponible.
+// Los archivos van en la carpeta MEDIA_PATH ('assets/').
+const MEDIA_PATH = 'assets/';
+const EXERCISE_MEDIA = {
+  // --- Calentamiento ---
+  'Sentadillas libres corporales':              'bodyweight_squat.png',
+  'Dislocaciones de hombro con banda':          'band_shoulder.png',
+  'Puentes de glúteo':                          'glute_bridge.gif',
+  'Bird-Dog':                                   'bird_dog.png',
+  // --- Día A ---
+  'Sentadilla en máquina Smith':                'smith_squat.gif',
+  'Prensa de piernas':                          'leg_press.gif',
+  'Extensión de cuádriceps':                    'leg_extension.gif',
+  'Abducción de cadera (máquina)':              'hip_abduction.gif',
+  'Plancha frontal':                            'plank.gif',
+  // --- Día B ---
+  'Press de pecho en máquina':                  'chest_press.gif',
+  'Jalón al pecho en polea alta':               'lat_pulldown.gif',
+  'Press de hombros con mancuernas':            'shoulder_press.gif',
+  'Dominadas asistidas (máquina)':              'assisted_pullup.gif',
+  'Curl de bíceps alternado':                   'biceps_curl.gif',
+  // --- Día C ---
+  'Hip Thrust con barra':                       'hip_thrust.png',
+  'Romanian Deadlift con mancuernas':           'rdl.gif',
+  'Curl de isquiotibiales (máquina)':           'leg_curl.gif',
+  'Aducción de cadera (máquina)':               'hip_adduction.gif',
+  'Patada de glúteo en polea baja':             'glute_kickback.gif',
+  // --- Día D ---
+  'Remo en máquina sentada':                    'seated_row.gif',
+  'Face Pull en polea':                         'face_pull.gif',
+  'Extensión de tríceps en polea alta':         'triceps_pushdown.gif',
+  'Dead Bug':                                   'dead_bug.gif',
+  // --- Estiramientos ---
+  'Estiramiento de cuádriceps de pie':          'stretch_quad.png',
+  'Estiramiento de flexores de cadera (Psoas)': 'stretch_hipflexor.gif',
+  'Estiramiento de pectoral':                   'stretch_pec.png',
+  'Estiramiento de dorsales':                   'stretch_lat.gif',
+  'Estiramiento de isquiotibiales en el suelo': 'stretch_hamstring.gif',
+  'Estiramiento de glúteo/piramidal':           'stretch_glute.gif',
+  'Estiramiento de tríceps':                    'stretch_triceps.gif',
+  'Estiramiento de espalda alta':               'stretch_upperback.gif',
+  // --- Opcional / sin match en el banco ---
+  'Cinta — ritmo moderado':                     '',
+};
+
+// Ejercicios sin GIF a propósito (no hay equivalente claro en el banco): no cuentan como pendientes.
+const MEDIA_SIN_MATCH = [
+  'Cinta — ritmo moderado',
+];
+
+function mediaHTML(name) {
+  const gif = EXERCISE_MEDIA[name];
+  if (!gif) return ''; // sin imagen: solo se muestran los pasos de técnica
+  return `
+            <div class="ex-media-box has-media">
+              <img src="${MEDIA_PATH}${gif}" alt="${name}" loading="lazy">
+            </div>`;
+}
+
+function mediaStats() {
+  const names = Object.keys(EXERCISE_MEDIA).filter(n => !MEDIA_SIN_MATCH.includes(n));
+  const pending = names.filter(n => !EXERCISE_MEDIA[n]);
+  return { total: names.length, done: names.length - pending.length, pending };
+}
+
+// Auditoría desde consola (solo para desarrollo, no se muestra en la app).
+function auditMedia() {
+  const s = mediaStats();
+  console.log(`Cobertura de imágenes: ${s.done}/${s.total}`);
+  if (s.pending.length) console.log('Pendientes:\n- ' + s.pending.join('\n- '));
+  else console.log('✅ Sin pendientes.');
+  return s.pending;
+}
+
 function renderRoutine() {
   let html = `
     <div class="section-toggle" onclick="toggleSection('routineContent', this)">
@@ -904,11 +981,7 @@ function renderRoutine() {
           <div class="ex-tech-drawer" id="w-tech-${idx}-${eIdx}">
             <h5>💡 Ejecución Técnica</h5>
             <ol class="ex-tech-steps">${e.steps.map(s => `<li>${s}</li>`).join('')}</ol>
-            <div class="ex-media-box">
-              <span class="icon">🖼️</span>
-              <span>[Espacio para imagen/GIF de técnica]</span>
-              <img src="${e.img}" id="w-img-${idx}-${eIdx}">
-            </div>
+            ${mediaHTML(e.name)}
           </div>
         </li>`; 
     });
@@ -936,11 +1009,7 @@ function renderRoutine() {
           <div class="ex-tech-drawer" style="display:block; margin: 0; border-left-color: var(--blue);">
             <h5>💡 Ejecución Técnica</h5>
             <ol class="ex-tech-steps">${e.steps.map(s => `<li>${s}</li>`).join('')}</ol>
-            <div class="ex-media-box">
-              <span class="icon">🖼️</span>
-              <span>[Espacio para imagen/GIF de técnica]</span>
-              <img src="${e.img}" id="m-img-${idx}-${eIdx}">
-            </div>
+            ${mediaHTML(e.name)}
           </div>
         </td></tr>`;
       });
@@ -957,11 +1026,7 @@ function renderRoutine() {
           <div class="ex-tech-drawer" id="m-tech-${idx}-${eIdx}" style="border-left-color: var(--blue);">
             <h5>💡 Ejecución Técnica</h5>
             <ol class="ex-tech-steps">${e.steps.map(s => `<li>${s}</li>`).join('')}</ol>
-            <div class="ex-media-box">
-              <span class="icon">🖼️</span>
-              <span>[Espacio para imagen/GIF de técnica]</span>
-              <img src="${e.img}" id="m-img-list-${idx}-${eIdx}">
-            </div>
+            ${mediaHTML(e.name)}
           </div>
         </li>`;
       });
@@ -985,11 +1050,7 @@ function renderRoutine() {
           <div class="ex-tech-drawer" id="c-tech-${idx}-${eIdx}" style="border-left-color: var(--green);">
             <h5>💡 Ejecución Técnica</h5>
             <ol class="ex-tech-steps">${e.steps.map(s => `<li>${s}</li>`).join('')}</ol>
-            <div class="ex-media-box">
-              <span class="icon">🖼️</span>
-              <span>[Espacio para imagen/GIF de técnica]</span>
-              <img src="${e.img}" id="c-img-${idx}-${eIdx}">
-            </div>
+            ${mediaHTML(e.name)}
           </div>
         </li>`; 
     });
